@@ -32,6 +32,7 @@
         .row-normal { background-color: var(--success); }
         .row-warning { background-color: var(--warning); }
         .row-danger { background-color: var(--danger); }
+        .med-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; background: #fdfdfd; border-radius: 4px; margin-bottom: 5px; }
         .med-checkbox { transform: scale(1.5); cursor: pointer; }
         @media print {
             .no-print { display: none !important; }
@@ -107,18 +108,17 @@
         </div>
 
         <div class="grid-container">
-            <!-- İLAÇ VERİ GİRİŞİ -->
+            <!-- SABİT İLAÇ LİSTESİ VE EKLEME -->
             <div class="card no-print">
-                <h3>💊 İlaç Ekle</h3>
+                <h3>💊 İlaç Listesi Yönetimi</h3>
                 <div class="grid-container" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 0;">
-                    <div class="form-group"><label>Tarih</label><input type="date" id="m-date"></div>
-                    <div class="form-group"><label>Saat</label><input type="time" id="m-time"></div>
+                    <div class="form-group"><label>İlaç Adı</label><input type="text" id="m-name" placeholder="Örn: Tansiyon İlacı"></div>
+                    <div class="form-group"><label>Kullanım Saati (Öneri)</label><input type="time" id="m-time"></div>
                 </div>
-                <div class="form-group">
-                    <label>İlaç Adı</label>
-                    <input type="text" id="m-name" placeholder="Örn: Parol">
-                </div>
-                <button onclick="window.addMed()">Veritabanına Kaydet</button>
+                <button onclick="window.addMedMaster()">Listeye Ekle</button>
+                
+                <h4 style="margin-top: 20px; margin-bottom: 10px; color: var(--secondary);">Sabit İlaçlarım:</h4>
+                <div id="master-meds-list"></div>
             </div>
 
             <!-- GRAFİKLER -->
@@ -130,8 +130,23 @@
             </div>
         </div>
 
+        <!-- GÜNLÜK İLAÇ TAKİBİ -->
+        <div class="card" style="margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--light); padding-bottom: 10px; margin-bottom: 15px;">
+                <h3 style="margin: 0; border: none; padding: 0;">📑 Günlük İlaç Takibi</h3>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <label style="font-weight: bold; font-size: 0.9em;">Tarih Seç:</label>
+                    <input type="date" id="daily-med-date" onchange="window.renderDailyMeds()" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold;">
+                </div>
+            </div>
+            <table>
+                <thead><tr><th>Planlanan Saat</th><th>İlaç Adı</th><th>Durum (İçildi mi?)</th></tr></thead>
+                <tbody id="daily-meds-tbody"></tbody>
+            </table>
+        </div>
+
         <!-- TABLOLAR -->
-        <div class="card">
+        <div class="card" style="margin-top: 20px;">
             <h3>📑 Kan Şekeri Geçmişi (Yemekten Önce / Açlık)</h3>
             <table>
                 <thead><tr><th>Tarih / Saat</th><th>Zamanlama</th><th>Değer</th><th>Not</th><th class="no-print">İşlem</th></tr></thead>
@@ -152,15 +167,6 @@
             <table>
                 <thead><tr><th>Tarih / Saat</th><th>Büyük / Küçük</th><th>Nabız</th><th>Not</th><th class="no-print">İşlem</th></tr></thead>
                 <tbody id="bp-tbody"></tbody>
-            </table>
-        </div>
-
-        <!-- GÜNLÜK İLAÇ TABLOSU -->
-        <div class="card" style="margin-top: 20px;">
-            <h3>📑 Günlük İlaç Geçmişi</h3>
-            <table>
-                <thead><tr><th>Tarih / Saat</th><th>İlaç Adı</th><th>Durum</th><th class="no-print">İşlem</th></tr></thead>
-                <tbody id="meds-tbody"></tbody>
             </table>
         </div>
     </div>
@@ -212,13 +218,11 @@
             const dateStr = now.toISOString().split('T')[0];
             const timeStr = now.toTimeString().split(' ')[0].substring(0,5);
             
-            // Şeker, Tansiyon ve İlaç alanları için otomatik güncel tarih/saat ataması
             document.getElementById('s-date').value = dateStr;
             document.getElementById('s-time').value = timeStr;
             document.getElementById('t-date').value = dateStr;
             document.getElementById('t-time').value = timeStr;
-            document.getElementById('m-date').value = dateStr;
-            document.getElementById('m-time').value = timeStr;
+            document.getElementById('daily-med-date').value = dateStr; // Günlük ilaç için otomatik bugün
         };
 
         window.login = async () => {
@@ -256,7 +260,8 @@
             const qMeds = query(collection(db, "medications"), where("userId", "==", uid));
             unsubMeds = onSnapshot(qMeds, (snapshot) => {
                 medsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderMeds();
+                window.renderMasterMeds();
+                window.renderDailyMeds();
             });
         }
 
@@ -267,9 +272,7 @@
             const type = document.getElementById("s-type").value;
             const val = parseInt(document.getElementById("s-value").value);
             const note = document.getElementById("s-note").value;
-
             if (!date || !time || !val) return alert("Lütfen gerekli alanları doldurun.");
-
             try {
                 await addDoc(collection(db, "sugar"), { userId: auth.currentUser.uid, date, time, type, val, note, timestamp: Date.now() });
                 document.getElementById("s-value").value = "";
@@ -284,7 +287,6 @@
             const afterTbody = document.getElementById("sugar-after-tbody");
             beforeTbody.innerHTML = "";
             afterTbody.innerHTML = "";
-            
             const sorted = [...sugarData].sort((a,b) => new Date(b.date+"T"+b.time) - new Date(a.date+"T"+a.time));
             
             sorted.forEach(item => {
@@ -300,19 +302,8 @@
                     else if (item.val <= 199) colorClass = "row-warning";
                     else colorClass = "row-danger";
                 }
-
-                const rowHtml = `
-                    <tr class="${colorClass}">
-                        <td>${item.date} ${item.time}</td>
-                        <td>${item.type}</td>
-                        <td><b>${item.val}</b> mg/dL</td>
-                        <td>${item.note || ''}</td>
-                        <td class="no-print"><button class="btn-danger" onclick="window.deleteSugar('${item.id}')">Sil</button></td>
-                    </tr>
-                `;
-
-                if (item.type === "Yemekten Önce") { beforeTbody.innerHTML += rowHtml; } 
-                else { afterTbody.innerHTML += rowHtml; }
+                const rowHtml = `<tr class="${colorClass}"><td>${item.date} ${item.time}</td><td>${item.type}</td><td><b>${item.val}</b> mg/dL</td><td>${item.note || ''}</td><td class="no-print"><button class="btn-danger" onclick="window.deleteSugar('${item.id}')">Sil</button></td></tr>`;
+                if (item.type === "Yemekten Önce") { beforeTbody.innerHTML += rowHtml; } else { afterTbody.innerHTML += rowHtml; }
             });
         }
 
@@ -324,9 +315,7 @@
             const dia = parseInt(document.getElementById("t-dia").value);
             const pulse = parseInt(document.getElementById("t-pulse").value);
             const note = document.getElementById("t-note").value;
-
             if (!date || !time || !sys || !dia || !pulse) return alert("Lütfen nabız dahil tüm alanları doldurun.");
-
             try {
                 await addDoc(collection(db, "blood_pressure"), { userId: auth.currentUser.uid, date, time, sys, dia, pulse, note, timestamp: Date.now() });
                 document.getElementById("t-sys").value = "";
@@ -349,70 +338,107 @@
                 else if (item.sys <= 120 && item.dia <= 80) colorClass = "row-normal"; 
                 else if (item.sys <= 139 || item.dia <= 89) colorClass = "row-warning"; 
                 else colorClass = "row-danger"; 
-
-                tbody.innerHTML += `
-                    <tr class="${colorClass}">
-                        <td>${item.date} ${item.time}</td>
-                        <td><b>${item.sys} / ${item.dia}</b></td>
-                        <td><b>${item.pulse || '-'}</b> bpm</td>
-                        <td>${item.note || ''}</td>
-                        <td class="no-print"><button class="btn-danger" onclick="window.deleteBP('${item.id}')">Sil</button></td>
-                    </tr>
-                `;
+                tbody.innerHTML += `<tr class="${colorClass}"><td>${item.date} ${item.time}</td><td><b>${item.sys} / ${item.dia}</b></td><td><b>${item.pulse || '-'}</b> bpm</td><td>${item.note || ''}</td><td class="no-print"><button class="btn-danger" onclick="window.deleteBP('${item.id}')">Sil</button></td></tr>`;
             });
         }
 
-        // --- İLAÇ İŞLEMLERİ ---
-        window.addMed = async () => {
-            const date = document.getElementById("m-date").value;
-            const time = document.getElementById("m-time").value;
+        // --- YENİ İLAÇ YÖNETİMİ (SABİT LİSTE VE GÜNLÜK TAKİP) ---
+        window.addMedMaster = async () => {
             const name = document.getElementById("m-name").value.trim();
+            const time = document.getElementById("m-time").value; // Saat sadece öneri/sıralama için
             
-            if(!date || !time || !name) return alert("Lütfen tarih, saat ve ilaç adını doldurun.");
+            if(!name) return alert("Lütfen bir ilaç adı girin.");
             
-            await addDoc(collection(db, "medications"), { userId: auth.currentUser.uid, date, time, name, taken: false, timestamp: Date.now() });
+            // "takenDates" adında bir dizi ile hangi günlerde içildiğini takip edeceğiz
+            await addDoc(collection(db, "medications"), { 
+                userId: auth.currentUser.uid, 
+                name: name, 
+                time: time || "", 
+                takenDates: [], // Başlangıçta boş
+                timestamp: Date.now() 
+            });
             document.getElementById("m-name").value = "";
         };
 
-        window.toggleMed = async (id, currentStatus) => { await updateDoc(doc(db, "medications", id), { taken: !currentStatus }); };
-        window.deleteMed = async (id) => { if(confirm("İlacı silmek istediğinize emin misiniz?")) await deleteDoc(doc(db, "medications", id)); };
+        window.deleteMedMaster = async (id) => { 
+            if(confirm("İlacı sabit listenizden tamamen silmek istediğinize emin misiniz?")) {
+                await deleteDoc(doc(db, "medications", id)); 
+            }
+        };
 
-        function renderMeds() {
-            const tbody = document.getElementById("meds-tbody");
-            tbody.innerHTML = "";
+        window.toggleDailyMed = async (id, selectedDate, isCurrentlyTaken) => { 
+            const med = medsData.find(m => m.id === id);
+            if (!med) return;
+
+            let currentDates = med.takenDates || [];
             
-            // Tarih ve saate göre azalan sıralama (En yeni giriş en üstte)
-            const sorted = [...medsData].sort((a,b) => {
-                const dateA = a.date ? new Date(a.date+"T"+a.time) : new Date(0);
-                const dateB = b.date ? new Date(b.date+"T"+b.time) : new Date(0);
-                return dateB - dateA;
+            if (isCurrentlyTaken) {
+                // Tiki kaldır (Tarihi diziden çıkar)
+                currentDates = currentDates.filter(d => d !== selectedDate);
+            } else {
+                // Tik at (Tarihi diziye ekle)
+                if (!currentDates.includes(selectedDate)) {
+                    currentDates.push(selectedDate);
+                }
+            }
+
+            await updateDoc(doc(db, "medications", id), { takenDates: currentDates }); 
+        };
+
+        window.renderMasterMeds = function() {
+            const listDiv = document.getElementById("master-meds-list");
+            listDiv.innerHTML = "";
+            if (medsData.length === 0) { listDiv.innerHTML = "<p style='color: gray; font-size: 0.9em;'>Listeniz boş, yukarıdan ilaç ekleyebilirsiniz.</p>"; return; }
+            
+            const sorted = [...medsData].sort((a,b) => (a.time || "").localeCompare(b.time || ""));
+            sorted.forEach(item => {
+                const timeText = item.time ? `<span style="font-weight: bold; background: var(--light); padding: 2px 6px; border-radius: 4px; margin-right: 10px;">${item.time}</span>` : '';
+                listDiv.innerHTML += `
+                    <div class="med-item">
+                        <div>${timeText}${item.name}</div>
+                        <button class="no-print btn-danger" style="padding: 4px 8px; font-size: 0.8em;" onclick="window.deleteMedMaster('${item.id}')">Listeden Sil</button>
+                    </div>
+                `;
             });
+        };
+
+        window.renderDailyMeds = function() {
+            const tbody = document.getElementById("daily-meds-tbody");
+            tbody.innerHTML = "";
+            const selectedDate = document.getElementById("daily-med-date").value;
+            if (!selectedDate) return;
+
+            const sorted = [...medsData].sort((a,b) => (a.time || "").localeCompare(b.time || ""));
+            
+            if (sorted.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: gray;">Henüz listenizde ilaç yok.</td></tr>`;
+                return;
+            }
 
             sorted.forEach(item => {
-                const dateStr = item.date ? `${item.date} ${item.time}` : `Eski Kayıt (${item.time})`;
+                // Seçilen tarih bu ilacın 'takenDates' dizisinde var mı?
+                const isTaken = (item.takenDates || []).includes(selectedDate);
                 
-                // İlaç alındıysa yeşil tik, alınmadıysa kum saati
-                const statusHtml = item.taken 
+                const statusHtml = isTaken 
                     ? `<span style="color: green; font-weight: bold;">✅ Alındı</span>` 
                     : `<span style="color: #e67e22; font-weight: bold;">⏳ Bekliyor</span>`;
                     
-                const colorClass = item.taken ? "row-normal" : "row-warning";
+                const colorClass = isTaken ? "row-normal" : "";
 
                 tbody.innerHTML += `
                     <tr class="${colorClass}">
-                        <td>${dateStr}</td>
-                        <td style="${item.taken ? 'text-decoration: line-through; color: gray;' : ''}"><b>${item.name}</b></td>
+                        <td style="width: 120px;"><b>${item.time || "-"}</b></td>
+                        <td style="${isTaken ? 'text-decoration: line-through; color: gray;' : 'font-weight: bold;'}">${item.name}</td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 10px;">
-                                <input type="checkbox" class="med-checkbox no-print" ${item.taken ? 'checked' : ''} onchange="window.toggleMed('${item.id}', ${item.taken})">
+                                <input type="checkbox" class="med-checkbox no-print" ${isTaken ? 'checked' : ''} onchange="window.toggleDailyMed('${item.id}', '${selectedDate}', ${isTaken})">
                                 ${statusHtml}
                             </div>
                         </td>
-                        <td class="no-print"><button class="btn-danger" onclick="window.deleteMed('${item.id}')">Sil</button></td>
                     </tr>
                 `;
             });
-        }
+        };
 
         // --- GRAFİKLER ---
         function updateCharts() {
@@ -432,31 +458,15 @@
 
             if(sugarBeforeChartInst) sugarBeforeChartInst.destroy();
             const ctxSBefore = document.getElementById('sugarBeforeChart').getContext('2d');
-            sugarBeforeChartInst = new Chart(ctxSBefore, {
-                type: 'line',
-                data: { labels: sBeforeDates, datasets: [{ label: 'Kan Şekeri - Yemekten Önce (mg/dL)', data: sBeforeVals, borderColor: '#3498db', tension: 0.1, fill: false }] }
-            });
+            sugarBeforeChartInst = new Chart(ctxSBefore, { type: 'line', data: { labels: sBeforeDates, datasets: [{ label: 'Şeker - Açlık (mg/dL)', data: sBeforeVals, borderColor: '#3498db', tension: 0.1, fill: false }] } });
 
             if(sugarAfterChartInst) sugarAfterChartInst.destroy();
             const ctxSAfter = document.getElementById('sugarAfterChart').getContext('2d');
-            sugarAfterChartInst = new Chart(ctxSAfter, {
-                type: 'line',
-                data: { labels: sAfterDates, datasets: [{ label: 'Kan Şekeri - Yemekten Sonra / Gün İçi (mg/dL)', data: sAfterVals, borderColor: '#e67e22', tension: 0.1, fill: false }] }
-            });
+            sugarAfterChartInst = new Chart(ctxSAfter, { type: 'line', data: { labels: sAfterDates, datasets: [{ label: 'Şeker - Tokluk/Gün İçi (mg/dL)', data: sAfterVals, borderColor: '#e67e22', tension: 0.1, fill: false }] } });
 
             if(bpChartInst) bpChartInst.destroy();
             const ctxB = document.getElementById('bpChart').getContext('2d');
-            bpChartInst = new Chart(ctxB, {
-                type: 'line',
-                data: {
-                    labels: bpDates,
-                    datasets: [
-                        { label: 'Büyük Tansiyon', data: sysVals, borderColor: '#e74c3c', tension: 0.1, fill: false },
-                        { label: 'Küçük Tansiyon', data: diaVals, borderColor: '#f1c40f', tension: 0.1, fill: false },
-                        { label: 'Nabız', data: pulseVals, borderColor: '#9b59b6', tension: 0.1, fill: false }
-                    ]
-                }
-            });
+            bpChartInst = new Chart(ctxB, { type: 'line', data: { labels: bpDates, datasets: [ { label: 'Büyük', data: sysVals, borderColor: '#e74c3c', tension: 0.1, fill: false }, { label: 'Küçük', data: diaVals, borderColor: '#f1c40f', tension: 0.1, fill: false }, { label: 'Nabız', data: pulseVals, borderColor: '#9b59b6', tension: 0.1, fill: false } ] } });
         }
     </script>
 </body>
