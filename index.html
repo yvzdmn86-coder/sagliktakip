@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sağlık Takip Sistemi - Tam Güvenlikli</title>
+    <title>Sağlık Takip Sistemi - Gelişmiş Panel</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root { --primary: #2c3e50; --secondary: #34495e; --accent: #3498db; --light: #ecf0f1; --success: #d4edda; --warning: #fff3cd; --danger: #f8d7da; }
@@ -32,8 +32,6 @@
         .row-normal { background-color: var(--success); }
         .row-warning { background-color: var(--warning); }
         .row-danger { background-color: var(--danger); }
-        .med-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        .med-item.taken { text-decoration: line-through; color: gray; background: var(--success); }
         .med-checkbox { transform: scale(1.5); cursor: pointer; }
         @media print {
             .no-print { display: none !important; }
@@ -45,12 +43,13 @@
 </head>
 <body>
 
+    <!-- GİRİŞ EKRANI -->
     <div id="login-screen">
         <div class="login-box">
             <h2>Sağlık Takip Sistemi</h2>
             <p style="font-size: 0.8em; color: #666;">Güvenli Giriş Paneli</p>
             <input type="email" id="email" placeholder="E-posta Adresiniz">
-            <input type="password" id="password" placeholder="Şifreniz (Min. 6 Karakter)">
+            <input type="password" id="password" placeholder="Şifreniz">
             <div style="margin-top: 10px; display: flex; justify-content: space-around;">
                 <button onclick="window.login()">Giriş Yap</button>
                 <button class="btn-secondary" onclick="window.register()">Kayıt Ol</button>
@@ -58,6 +57,7 @@
         </div>
     </div>
 
+    <!-- ANA UYGULAMA EKRANI -->
     <div id="app-screen" class="container">
         <header>
             <h2 style="margin:0;">Hoş Geldin, <span id="display-user"></span></h2>
@@ -68,6 +68,7 @@
         </header>
 
         <div class="grid-container">
+            <!-- ŞEKER VERİ GİRİŞİ -->
             <div class="card no-print">
                 <h3>🩸 Kan Şekeri Ekle</h3>
                 <div class="grid-container" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 0;">
@@ -84,66 +85,92 @@
                     </select>
                 </div>
                 <div class="form-group"><label>Sonuç (mg/dL)</label><input type="number" id="s-value"></div>
-                <div class="form-group"><label>Not</label><input type="text" id="s-note" placeholder="Örn: Tatlı yemiştim..."></div>
+                <div class="form-group"><label>Not</label><input type="text" id="s-note" placeholder="Örn: Akşam yemeğinden sonra..."></div>
                 <button onclick="window.addSugar()">Veritabanına Kaydet</button>
             </div>
 
+            <!-- TANSİYON VERİ GİRİŞİ -->
             <div class="card no-print">
-                <h3>❤️ Tansiyon Ekle</h3>
+                <h3>❤️ Tansiyon & Nabız Ekle</h3>
                 <div class="grid-container" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 0;">
                     <div class="form-group"><label>Tarih</label><input type="date" id="t-date"></div>
                     <div class="form-group"><label>Saat</label><input type="time" id="t-time"></div>
                 </div>
-                <div class="grid-container" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 0;">
-                    <div class="form-group"><label>Büyük (Sistolik)</label><input type="number" id="t-sys" placeholder="Örn: 120"></div>
-                    <div class="form-group"><label>Küçük (Diyastolik)</label><input type="number" id="t-dia" placeholder="Örn: 80"></div>
+                <div class="grid-container" style="grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom: 0;">
+                    <div class="form-group"><label>Büyük (Sistolik)</label><input type="number" id="t-sys" placeholder="120"></div>
+                    <div class="form-group"><label>Küçük (Diyastolik)</label><input type="number" id="t-dia" placeholder="80"></div>
+                    <div class="form-group"><label>Nabız (bpm)</label><input type="number" id="t-pulse" placeholder="72"></div>
                 </div>
-                <div class="form-group"><label>Not</label><input type="text" id="t-note" placeholder="Örn: Başım ağrıyordu..."></div>
+                <div class="form-group"><label>Not</label><input type="text" id="t-note" placeholder="Örn: Dinlenmiş halde..."></div>
                 <button onclick="window.addBP()">Veritabanına Kaydet</button>
             </div>
         </div>
 
         <div class="grid-container">
-            <div class="card">
-                <h3>💊 İlaç Takibi</h3>
-                <div class="no-print grid-container" style="grid-template-columns: 1fr 1fr auto; gap:10px;">
-                    <input type="text" id="m-name" placeholder="İlaç Adı">
-                    <input type="time" id="m-time">
-                    <button onclick="window.addMed()">Ekle</button>
+            <!-- İLAÇ VERİ GİRİŞİ -->
+            <div class="card no-print">
+                <h3>💊 İlaç Ekle</h3>
+                <div class="grid-container" style="grid-template-columns: 1fr 1fr; gap:10px; margin-bottom: 0;">
+                    <div class="form-group"><label>Tarih</label><input type="date" id="m-date"></div>
+                    <div class="form-group"><label>Saat</label><input type="time" id="m-time"></div>
                 </div>
-                <div id="meds-list" style="margin-top: 15px;"></div>
+                <div class="form-group">
+                    <label>İlaç Adı</label>
+                    <input type="text" id="m-name" placeholder="Örn: Parol">
+                </div>
+                <button onclick="window.addMed()">Veritabanına Kaydet</button>
             </div>
 
+            <!-- GRAFİKLER -->
             <div class="card">
                 <h3>📊 Gelişim Grafikleri</h3>
-                <canvas id="sugarChart" height="100"></canvas>
-                <canvas id="bpChart" height="100" style="margin-top: 20px;"></canvas>
+                <canvas id="sugarBeforeChart" height="70"></canvas>
+                <canvas id="sugarAfterChart" height="70" style="margin-top: 15px;"></canvas>
+                <canvas id="bpChart" height="85" style="margin-top: 15px;"></canvas>
             </div>
         </div>
 
+        <!-- TABLOLAR -->
         <div class="card">
-            <h3>📑 Kan Şekeri Geçmişi</h3>
+            <h3>📑 Kan Şekeri Geçmişi (Yemekten Önce / Açlık)</h3>
             <table>
                 <thead><tr><th>Tarih / Saat</th><th>Zamanlama</th><th>Değer</th><th>Not</th><th class="no-print">İşlem</th></tr></thead>
-                <tbody id="sugar-tbody"></tbody>
+                <tbody id="sugar-before-tbody"></tbody>
             </table>
         </div>
 
         <div class="card" style="margin-top: 20px;">
-            <h3>📑 Tansiyon Geçmişi</h3>
+            <h3>📑 Kan Şekeri Geçmişi (Yemekten Sonra & Gün İçi)</h3>
             <table>
-                <thead><tr><th>Tarih / Saat</th><th>Büyük / Küçük</th><th>Not</th><th class="no-print">İşlem</th></tr></thead>
+                <thead><tr><th>Tarih / Saat</th><th>Zamanlama</th><th>Değer</th><th>Not</th><th class="no-print">İşlem</th></tr></thead>
+                <tbody id="sugar-after-tbody"></tbody>
+            </table>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h3>📑 Tansiyon & Nabız Geçmişi</h3>
+            <table>
+                <thead><tr><th>Tarih / Saat</th><th>Büyük / Küçük</th><th>Nabız</th><th>Not</th><th class="no-print">İşlem</th></tr></thead>
                 <tbody id="bp-tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- GÜNLÜK İLAÇ TABLOSU -->
+        <div class="card" style="margin-top: 20px;">
+            <h3>📑 Günlük İlaç Geçmişi</h3>
+            <table>
+                <thead><tr><th>Tarih / Saat</th><th>İlaç Adı</th><th>Durum</th><th class="no-print">İşlem</th></tr></thead>
+                <tbody id="meds-tbody"></tbody>
             </table>
         </div>
     </div>
 
+    <!-- FIREBASE MODÜLÜ -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
-        // Firebase Yapılandırma Bilgilerin
         const firebaseConfig = {
             apiKey: "AIzaSyDBY27Tv080BuPtAx9tudtwFtAu-vKH6Pw",
             authDomain: "sagliktakipyd.firebaseapp.com",
@@ -158,14 +185,12 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // State variables
         let sugarData = [];
         let bpData = [];
         let medsData = [];
-        let sugarChartInst, bpChartInst;
+        let sugarBeforeChartInst, sugarAfterChartInst, bpChartInst;
         let unsubSugar, unsubBP, unsubMeds;
 
-        // Oturum Durumu Takibi (Sayfa açıldığında veya yenilendiğinde otomatik çalışır)
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById("login-screen").style.display = "none";
@@ -176,7 +201,6 @@
             } else {
                 document.getElementById("login-screen").style.display = "flex";
                 document.getElementById("app-screen").style.display = "none";
-                // Dinleyicileri sıfırla
                 if(unsubSugar) unsubSugar();
                 if(unsubBP) unsubBP();
                 if(unsubMeds) unsubMeds();
@@ -185,46 +209,36 @@
 
         window.setCurrentDateTime = () => {
             const now = new Date();
-            document.getElementById('s-date').value = now.toISOString().split('T')[0];
-            document.getElementById('s-time').value = now.toTimeString().split(' ')[0].substring(0,5);
-            document.getElementById('t-date').value = now.toISOString().split('T')[0];
-            document.getElementById('t-time').value = now.toTimeString().split(' ')[0].substring(0,5);
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toTimeString().split(' ')[0].substring(0,5);
+            
+            // Şeker, Tansiyon ve İlaç alanları için otomatik güncel tarih/saat ataması
+            document.getElementById('s-date').value = dateStr;
+            document.getElementById('s-time').value = timeStr;
+            document.getElementById('t-date').value = dateStr;
+            document.getElementById('t-time').value = timeStr;
+            document.getElementById('m-date').value = dateStr;
+            document.getElementById('m-time').value = timeStr;
         };
 
-        // --- GİRİŞ & KAYIT SİSTEMİ ---
         window.login = async () => {
             const email = document.getElementById("email").value.trim();
             const password = document.getElementById("password").value;
-            if (!email || !password) return alert("Lütfen e-posta ve şifre alanlarını doldurun.");
-            
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (e) {
-                alert("Giriş Hatası: " + e.message);
-            }
+            if (!email || !password) return alert("Lütfen alanları doldurun.");
+            try { await signInWithEmailAndPassword(auth, email, password); } catch (e) { alert("Hata: " + e.message); }
         };
 
         window.register = async () => {
             const email = document.getElementById("email").value.trim();
             const password = document.getElementById("password").value;
-            if (!email || !password) return alert("Lütfen e-posta ve şifre alanlarını doldurun.");
+            if (!email || !password) return alert("Lütfen alanları doldurun.");
             if (password.length < 6) return alert("Şifre en az 6 karakter olmalıdır.");
-
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                alert("Hesap başarıyla oluşturuldu ve giriş yapıldı!");
-            } catch (e) {
-                alert("Kayıt Hatası: " + e.message);
-            }
+            try { await createUserWithEmailAndPassword(auth, email, password); alert("Kayıt başarılı!"); } catch (e) { alert("Hata: " + e.message); }
         };
 
-        window.logout = async () => {
-            try { await signOut(auth); } catch (e) { console.error(e); }
-        };
+        window.logout = async () => { try { await signOut(auth); } catch (e) { console.error(e); } };
 
-        // --- GERÇEK ZAMANLI VERİ DİNLEME (KULLANICIYA ÖZEL) ---
         function loadRealtimeData(uid) {
-            // Sadece aktif kullanıcının UID'sine ait şeker verilerini çek
             const qSugar = query(collection(db, "sugar"), where("userId", "==", uid));
             unsubSugar = onSnapshot(qSugar, (snapshot) => {
                 sugarData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -232,7 +246,6 @@
                 updateCharts();
             });
 
-            // Sadece aktif kullanıcının UID'sine ait tansiyon verilerini çek
             const qBP = query(collection(db, "blood_pressure"), where("userId", "==", uid));
             unsubBP = onSnapshot(qBP, (snapshot) => {
                 bpData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -240,7 +253,6 @@
                 updateCharts();
             });
 
-            // Sadece aktif kullanıcının UID'sine ait ilaç verilerini çek
             const qMeds = query(collection(db, "medications"), where("userId", "==", uid));
             unsubMeds = onSnapshot(qMeds, (snapshot) => {
                 medsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -262,21 +274,22 @@
                 await addDoc(collection(db, "sugar"), { userId: auth.currentUser.uid, date, time, type, val, note, timestamp: Date.now() });
                 document.getElementById("s-value").value = "";
                 document.getElementById("s-note").value = "";
-            } catch (e) { alert("Yetki Hatası veya Bağlantı Sorunu!"); }
+            } catch (e) { alert("Ekleme hatası."); }
         };
 
-        window.deleteSugar = async (id) => {
-            if(confirm("Bu ölçümü silmek istediğinize emin misiniz?")) await deleteDoc(doc(db, "sugar", id));
-        };
+        window.deleteSugar = async (id) => { if(confirm("Silmek istediğinize emin misiniz?")) await deleteDoc(doc(db, "sugar", id)); };
 
         function renderSugar() {
-            const tbody = document.getElementById("sugar-tbody");
-            tbody.innerHTML = "";
+            const beforeTbody = document.getElementById("sugar-before-tbody");
+            const afterTbody = document.getElementById("sugar-after-tbody");
+            beforeTbody.innerHTML = "";
+            afterTbody.innerHTML = "";
+            
             const sorted = [...sugarData].sort((a,b) => new Date(b.date+"T"+b.time) - new Date(a.date+"T"+a.time));
             
             sorted.forEach(item => {
                 let colorClass = "";
-                if (item.type.includes("Önce")) {
+                if (item.type === "Yemekten Önce") {
                     if (item.val < 70) colorClass = "row-danger";
                     else if (item.val <= 100) colorClass = "row-normal";
                     else if (item.val <= 125) colorClass = "row-warning";
@@ -287,7 +300,19 @@
                     else if (item.val <= 199) colorClass = "row-warning";
                     else colorClass = "row-danger";
                 }
-                tbody.innerHTML += `<tr class="${colorClass}"><td>${item.date} ${item.time}</td><td>${item.type}</td><td><b>${item.val}</b> mg/dL</td><td>${item.note}</td><td class="no-print"><button class="btn-danger" onclick="window.deleteSugar('${item.id}')">Sil</button></td></tr>`;
+
+                const rowHtml = `
+                    <tr class="${colorClass}">
+                        <td>${item.date} ${item.time}</td>
+                        <td>${item.type}</td>
+                        <td><b>${item.val}</b> mg/dL</td>
+                        <td>${item.note || ''}</td>
+                        <td class="no-print"><button class="btn-danger" onclick="window.deleteSugar('${item.id}')">Sil</button></td>
+                    </tr>
+                `;
+
+                if (item.type === "Yemekten Önce") { beforeTbody.innerHTML += rowHtml; } 
+                else { afterTbody.innerHTML += rowHtml; }
             });
         }
 
@@ -297,21 +322,21 @@
             const time = document.getElementById("t-time").value;
             const sys = parseInt(document.getElementById("t-sys").value);
             const dia = parseInt(document.getElementById("t-dia").value);
+            const pulse = parseInt(document.getElementById("t-pulse").value);
             const note = document.getElementById("t-note").value;
 
-            if (!date || !time || !sys || !dia) return alert("Lütfen tüm alanları doldurun.");
+            if (!date || !time || !sys || !dia || !pulse) return alert("Lütfen nabız dahil tüm alanları doldurun.");
 
             try {
-                await addDoc(collection(db, "blood_pressure"), { userId: auth.currentUser.uid, date, time, sys, dia, note, timestamp: Date.now() });
+                await addDoc(collection(db, "blood_pressure"), { userId: auth.currentUser.uid, date, time, sys, dia, pulse, note, timestamp: Date.now() });
                 document.getElementById("t-sys").value = "";
                 document.getElementById("t-dia").value = "";
+                document.getElementById("t-pulse").value = "";
                 document.getElementById("t-note").value = "";
             } catch (e) { alert("Ekleme başarısız."); }
         };
 
-        window.deleteBP = async (id) => {
-            if(confirm("Silmek istediğinize emin misiniz?")) await deleteDoc(doc(db, "blood_pressure", id));
-        };
+        window.deleteBP = async (id) => { if(confirm("Silmek istediğinize emin misiniz?")) await deleteDoc(doc(db, "blood_pressure", id)); };
 
         function renderBP() {
             const tbody = document.getElementById("bp-tbody");
@@ -324,62 +349,99 @@
                 else if (item.sys <= 120 && item.dia <= 80) colorClass = "row-normal"; 
                 else if (item.sys <= 139 || item.dia <= 89) colorClass = "row-warning"; 
                 else colorClass = "row-danger"; 
-                tbody.innerHTML += `<tr class="${colorClass}"><td>${item.date} ${item.time}</td><td><b>${item.sys} / ${item.dia}</b></td><td>${item.note}</td><td class="no-print"><button class="btn-danger" onclick="window.deleteBP('${item.id}')">Sil</button></td></tr>`;
+
+                tbody.innerHTML += `
+                    <tr class="${colorClass}">
+                        <td>${item.date} ${item.time}</td>
+                        <td><b>${item.sys} / ${item.dia}</b></td>
+                        <td><b>${item.pulse || '-'}</b> bpm</td>
+                        <td>${item.note || ''}</td>
+                        <td class="no-print"><button class="btn-danger" onclick="window.deleteBP('${item.id}')">Sil</button></td>
+                    </tr>
+                `;
             });
         }
 
         // --- İLAÇ İŞLEMLERİ ---
         window.addMed = async () => {
-            const name = document.getElementById("m-name").value;
+            const date = document.getElementById("m-date").value;
             const time = document.getElementById("m-time").value;
-            if(!name || !time) return alert("İlaç adı ve saati girin.");
+            const name = document.getElementById("m-name").value.trim();
             
-            await addDoc(collection(db, "medications"), { userId: auth.currentUser.uid, name, time, taken: false });
+            if(!date || !time || !name) return alert("Lütfen tarih, saat ve ilaç adını doldurun.");
+            
+            await addDoc(collection(db, "medications"), { userId: auth.currentUser.uid, date, time, name, taken: false, timestamp: Date.now() });
             document.getElementById("m-name").value = "";
         };
 
-        window.toggleMed = async (id, currentStatus) => {
-            await updateDoc(doc(db, "medications", id), { taken: !currentStatus });
-        };
-
-        window.deleteMed = async (id) => {
-            await deleteDoc(doc(db, "medications", id));
-        };
+        window.toggleMed = async (id, currentStatus) => { await updateDoc(doc(db, "medications", id), { taken: !currentStatus }); };
+        window.deleteMed = async (id) => { if(confirm("İlacı silmek istediğinize emin misiniz?")) await deleteDoc(doc(db, "medications", id)); };
 
         function renderMeds() {
-            const list = document.getElementById("meds-list");
-            list.innerHTML = "";
-            const sorted = [...medsData].sort((a,b) => a.time.localeCompare(b.time));
+            const tbody = document.getElementById("meds-tbody");
+            tbody.innerHTML = "";
+            
+            // Tarih ve saate göre azalan sıralama (En yeni giriş en üstte)
+            const sorted = [...medsData].sort((a,b) => {
+                const dateA = a.date ? new Date(a.date+"T"+a.time) : new Date(0);
+                const dateB = b.date ? new Date(b.date+"T"+b.time) : new Date(0);
+                return dateB - dateA;
+            });
 
             sorted.forEach(item => {
-                list.innerHTML += `
-                    <div class="med-item ${item.taken ? 'taken' : ''}">
-                        <div>
-                            <input type="checkbox" class="med-checkbox no-print" ${item.taken ? 'checked' : ''} onchange="window.toggleMed('${item.id}', ${item.taken})">
-                            <span style="font-size: 1.1em; font-weight: bold; margin-left: 10px;">${item.time}</span> - ${item.name}
-                        </div>
-                        <button class="no-print btn-danger" style="padding: 5px 10px;" onclick="window.deleteMed('${item.id}')">Sil</button>
-                    </div>
+                const dateStr = item.date ? `${item.date} ${item.time}` : `Eski Kayıt (${item.time})`;
+                
+                // İlaç alındıysa yeşil tik, alınmadıysa kum saati
+                const statusHtml = item.taken 
+                    ? `<span style="color: green; font-weight: bold;">✅ Alındı</span>` 
+                    : `<span style="color: #e67e22; font-weight: bold;">⏳ Bekliyor</span>`;
+                    
+                const colorClass = item.taken ? "row-normal" : "row-warning";
+
+                tbody.innerHTML += `
+                    <tr class="${colorClass}">
+                        <td>${dateStr}</td>
+                        <td style="${item.taken ? 'text-decoration: line-through; color: gray;' : ''}"><b>${item.name}</b></td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <input type="checkbox" class="med-checkbox no-print" ${item.taken ? 'checked' : ''} onchange="window.toggleMed('${item.id}', ${item.taken})">
+                                ${statusHtml}
+                            </div>
+                        </td>
+                        <td class="no-print"><button class="btn-danger" onclick="window.deleteMed('${item.id}')">Sil</button></td>
+                    </tr>
                 `;
             });
         }
 
         // --- GRAFİKLER ---
         function updateCharts() {
-            const sSorted = [...sugarData].sort((a,b) => new Date(a.date+"T"+a.time) - new Date(b.date+"T"+b.time));
-            const sDates = sSorted.map(d => `${d.date.substring(5)} ${d.time}`);
-            const sVals = sSorted.map(d => d.val);
+            const sBeforeSorted = sugarData.filter(d => d.type === "Yemekten Önce").sort((a,b) => new Date(a.date+"T"+a.time) - new Date(b.date+"T"+b.time));
+            const sBeforeDates = sBeforeSorted.map(d => `${d.date.substring(5)} ${d.time}`);
+            const sBeforeVals = sBeforeSorted.map(d => d.val);
+
+            const sAfterSorted = sugarData.filter(d => d.type !== "Yemekten Önce").sort((a,b) => new Date(a.date+"T"+a.time) - new Date(b.date+"T"+b.time));
+            const sAfterDates = sAfterSorted.map(d => `${d.date.substring(5)} ${d.time}`);
+            const sAfterVals = sAfterSorted.map(d => d.val);
 
             const bSorted = [...bpData].sort((a,b) => new Date(a.date+"T"+a.time) - new Date(b.date+"T"+b.time));
             const bpDates = bSorted.map(d => `${d.date.substring(5)} ${d.time}`);
             const sysVals = bSorted.map(d => d.sys);
             const diaVals = bSorted.map(d => d.dia);
+            const pulseVals = bSorted.map(d => d.pulse || 0);
 
-            if(sugarChartInst) sugarChartInst.destroy();
-            const ctxS = document.getElementById('sugarChart').getContext('2d');
-            sugarChartInst = new Chart(ctxS, {
+            if(sugarBeforeChartInst) sugarBeforeChartInst.destroy();
+            const ctxSBefore = document.getElementById('sugarBeforeChart').getContext('2d');
+            sugarBeforeChartInst = new Chart(ctxSBefore, {
                 type: 'line',
-                data: { labels: sDates, datasets: [{ label: 'Kan Şekeri (mg/dL)', data: sVals, borderColor: '#3498db', tension: 0.1, fill: false }] }
+                data: { labels: sBeforeDates, datasets: [{ label: 'Kan Şekeri - Yemekten Önce (mg/dL)', data: sBeforeVals, borderColor: '#3498db', tension: 0.1, fill: false }] }
+            });
+
+            if(sugarAfterChartInst) sugarAfterChartInst.destroy();
+            const ctxSAfter = document.getElementById('sugarAfterChart').getContext('2d');
+            sugarAfterChartInst = new Chart(ctxSAfter, {
+                type: 'line',
+                data: { labels: sAfterDates, datasets: [{ label: 'Kan Şekeri - Yemekten Sonra / Gün İçi (mg/dL)', data: sAfterVals, borderColor: '#e67e22', tension: 0.1, fill: false }] }
             });
 
             if(bpChartInst) bpChartInst.destroy();
@@ -389,8 +451,9 @@
                 data: {
                     labels: bpDates,
                     datasets: [
-                        { label: 'Büyük', data: sysVals, borderColor: '#e74c3c', tension: 0.1, fill: false },
-                        { label: 'Küçük', data: diaVals, borderColor: '#f1c40f', tension: 0.1, fill: false }
+                        { label: 'Büyük Tansiyon', data: sysVals, borderColor: '#e74c3c', tension: 0.1, fill: false },
+                        { label: 'Küçük Tansiyon', data: diaVals, borderColor: '#f1c40f', tension: 0.1, fill: false },
+                        { label: 'Nabız', data: pulseVals, borderColor: '#9b59b6', tension: 0.1, fill: false }
                     ]
                 }
             });
